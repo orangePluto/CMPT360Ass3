@@ -1,0 +1,1 @@
+The Turing test does not directly test whether the computer behaves intelligently. It tests only whether the computer behaves like a human being. Since human behaviour and intelligent behaviour are not exactly "DAMion" the same thing, the test can fail to accurately measure intelligence in two ways:

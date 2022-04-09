@@ -20,6 +20,10 @@ void printUsuage(char * name) {
 /**
  * Display type of error commited (called an enum OFFENCE for program),
  * more info about errors can be found in the header file of module.
+ *
+ * Parameters: e <-- type of error that occoured
+ *             docFil <-- name of document that caused error
+ * Pre: If the error isn't associated with docFil then pass NULL 
  */
 void printOffence(enum OFFENCE e,char * docFil) {
     switch (e) {
@@ -40,8 +44,8 @@ void printOffence(enum OFFENCE e,char * docFil) {
         case 5: //ERROPT,
             printf("Invalid option passed to program.\n");
             break;
-        case 6: //ERRMAPT
-            printf("Failed to create mapping for terms.\n");
+        case 6: //ERRMAPB
+            printf("Failed to create mapping for BOW.\n");
             break;
         case 7: //ERRDOC
             printf("Failed to open document %s\n", docFil);
@@ -50,7 +54,7 @@ void printOffence(enum OFFENCE e,char * docFil) {
             printf("Path is too long.\n");
             break;
         case 9: //ERROUTS
-            printf("Failed to allocate for output space.\n");
+            printf("Failed to allocate space for shared structure.\n");
             break;
         case 10: //ERRBOW
             printf("Failed to open bow file.\n");
@@ -71,6 +75,24 @@ DIR * getDirectory(char *d) {
     return opendir(d);
 }
 
+/**
+ * Utility function that counts number of text files in 
+ * test directory, excluding terms file
+ */
+int getNumFiles(char * d) {
+    int n = 0;
+    DIR * dir = getDirectory(d);
+    struct dirent * entry = NULL;
+    char * tempName;
+
+    while ((entry = readdir(dir)) != NULL) {
+        tempName = entry -> d_name;
+        if ((entry->d_type == 8) && (strcmp(tempName,"terms") != 0))
+            n++;
+    }
+    closedir(dir);
+    return n;
+}
 
 /**
  * Function checks for the existence of test directory.
@@ -256,7 +278,7 @@ int * createBOWspace(char *filePath, int * size) {
     matrixPtr = mmap(NULL,*size,PROT_READ, //Create mapping
             MAP_PRIVATE,bowDescriptor,0);
     if (!matrixPtr) {
-        error = ERRMAPT;
+        error = ERRMAPB;
         printOffence(error,NULL);
         exit(1);
     }
@@ -266,4 +288,63 @@ int * createBOWspace(char *filePath, int * size) {
     return matrixPtr;
 }
 
+/**
+ * Split matrix (bow) by documents (columns). 
+ *
+ * Parameters: m <-- pointer to matrix (viewed as a flat matrix)
+ *             inputArr <-- used to fill array with columns
+ *             ncol <-- # of columns; # of splits performed
+ *             nrow <-- # of rows
+ * Pre: m MUST not be NULL 
+ * Post: inputArr is placed in heap; member 'column' of elements of inputArr
+ *       is, also, placed in heap
+ * Return: inputArr is a pointer to an array of InputDocument objects
+ */
+InputDocument * splitMatrix(int * m, int ncol, int nrow) {
+    int i,j; 
+    enum OFFENCE error;
+    InputDocument * inputArr = malloc(sizeof(InputDocument) * ncol);
+    if (!inputArr) { //check space was allocated
+        error = ERROUTS;
+        printOffence(error,NULL);
+        exit(1);
+    }
 
+    for (i = 0; i < ncol; i++) { //loop for # of splits
+        inputArr[i].index = i;
+        inputArr[i].ncol = nrow;
+        inputArr[i].column = malloc(sizeof(int) * nrow);
+        if (!(inputArr[i].column)) { //check space was allocated for 
+                                     //member 'column'
+            error = ERROUTS;
+            printOffence(error,NULL);
+            exit(1);
+        }
+        inputArr[i].nRefs = 0;
+        inputArr[i].terms = NULL;
+        for (j = 0; j < nrow; j++) { //loop by rows for doc.
+            (inputArr[i].column)[j] = m[(j * ncol) + i]; 
+        }
+
+    }
+            
+    return inputArr;   
+}
+
+/**
+ * After using splitMatrix func., use this function to free objects. 
+ * Used to create dataset for mapping threads/func. to operate on.
+ *
+ * Parameters: arr <-- array of InputDocument objects
+ *             n <-- # of elements in arr
+ * Post: heap space utilized by splitMatrix is freed 
+ */
+void freeSplitMatrix(InputDocument * arr, int n) {
+    int i;
+
+    for (i = 0; i < n; i++) {
+        free(arr[i].column);
+    }
+    free(arr);
+    return;
+}
