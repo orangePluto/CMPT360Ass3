@@ -5,7 +5,8 @@
 # Instructor's Name: Dr. Cameron Macdonell 
 *----------------------------------------------------------------*/
 
-#include "gentfModule.h"
+#include "gentfCommon.h"
+#include "gentfThreads.h"
 
 /*********************Result from Map Function****************************/
 typedef struct { //InputDocument maps to OutDocument for this program
@@ -19,6 +20,14 @@ int nDocs; //# of documents from test directory
 int nTerms; //# of terms from terms file 
 OutDocument * mapPtr; //Dynamic array of OutDocument objects
                        //Shared structure between mapping threads
+
+void * mapper(void * inputArr) {
+    InputDocument * inArr = (InputDocument *) inputArr;
+    printf("Inside mapper for gentf 1\n");
+    
+    free(inArr);
+    return NULL;
+}
 
 /**
  * Initialize global variables: nDocs,nterms, and mapPtr.
@@ -64,6 +73,7 @@ int main(int argc,char *argv[]) {
         mxPtr = createBOWspace(argv[4],&bound);
         initialize(argv[3],bound);
         inputArr = splitMatrix(mxPtr,nDocs,nTerms);
+        spawnMapThreads(inputArr, mapper, atoi(argv[2]),nDocs);
 
         //Release resources
         munmap(mxPtr,bound);

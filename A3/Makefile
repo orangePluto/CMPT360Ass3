@@ -9,8 +9,8 @@ CFLAGS = -Wall -std=c99
 
 all: gentf-mr-1
 
-gentf-mr-1: gentf-mr-1.c gentfModule.h gentfModule.c
-	gcc $(CFLAGS)  -o gentf-mr-1 gentf-mr-1.c gentfModule.c
+gentf-mr-1: gentf-mr-1.c gentfCommon.h gentfCommon.c gentfThreads.h gentfThreads.c
+	gcc $(CFLAGS)  -o gentf-mr-1 gentf-mr-1.c gentfCommon.c gentfThreads.c
 
 clean:
 	rm gentf-mr-1

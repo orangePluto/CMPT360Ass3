@@ -5,8 +5,8 @@
 # Instructor's Name: Dr. Cameron Macdonell 
 *----------------------------------------------------------------*/
 
-#ifndef GENTF_MODULE
-#define GENTF_MODULE
+#ifndef GENTF_COMMON
+#define GENTF_COMMON
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -48,6 +48,7 @@ enum OFFENCE { //used to identify types of errors specific to program
     ERROUTS,//Failed to allocate space after using malloc
     ERRBOW,//Failed to open bow file
     ERRNUM,//option -n wasn't given a #
+    ERRTHR,// Failed to create thread
 };
 
 /**

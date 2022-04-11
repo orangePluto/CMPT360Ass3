@@ -5,7 +5,7 @@
 # Instructor's Name: Dr. Cameron Macdonell 
 *----------------------------------------------------------------*/
 
-#include "gentfModule.h"
+#include "gentfCommon.h"
 
 /**
  * Function is invoked when program wasn't provided appropriate 
@@ -61,6 +61,9 @@ void printOffence(enum OFFENCE e,char * docFil) {
             break;
         case 11: //ERRNUM
             printf("Option -n requires a number.\n");
+            break;
+        case 12: //ERRTHR
+            printf("Failed to create mapping thread.\n");
             break;
     }
 }
